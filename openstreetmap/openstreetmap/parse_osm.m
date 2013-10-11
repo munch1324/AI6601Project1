@@ -75,7 +75,7 @@ for i=1:Nways
     Nnd = size(waytemp.nd, 2);
     ndtemp = zeros(1, Nnd);
     for j=1:Nnd
-        ndtemp(1, j) = str2double(waytemp.nd{j}.Attributes.ref);
+        %ndtemp(1, j) = str2double(waytemp.nd{j}.Attributes.ref);
     end
     nd{1, i} = ndtemp;
     
