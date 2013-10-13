@@ -13,9 +13,30 @@ function [ output_args ] = BiObjectiveAntColony( input_args )
 endConditionMet = false;
 while ~endConditionMet
     
+    %For each ant
+    ants = [1,2,3];
+    for ant = ants;
+        
+        %until you reach the sink
+        while 1 == 1
+        
+        
+        
+        
+        
+        end
+        
+    end
     
     
+    %if ants didn't generate a solution, repeat
+    if ~solution
+        
     
+    else%perform a global update
+        
+        
+    end
     
     
 end
