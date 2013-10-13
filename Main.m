@@ -19,6 +19,8 @@ var = 0.00001;
 % node_xy(:,i) = lat and long of node i
 % weights = Combination proportion of crime and distance objectives
 
+
+
 node_xy = parsed_osm.node.xy;
 weights = [0, 0.5, 1];
 
@@ -30,12 +32,12 @@ t = 1;
 while t < num_exp
     start = randi(num_nodes);
     goal  = randi(num_nodes);
-    [path explored] = WeightedAStar(dg,dist,crime,start,goal,0,xy);
+    [path explored] = WeightedAStar(dg,dist,crime,start,goal,0,node_xy);
     if isempty(path)
         continue
     else
         for weight = 1:length(weights)
-            [path explored] = WeightedAStar(dg,dist,crime,start,goal,weights(weight),xy)
+            [path explored] = WeightedAStar(dg,dist,crime,start,goal,weights(weight),node_xy)
             if weight == 1
                 hold off
             end
