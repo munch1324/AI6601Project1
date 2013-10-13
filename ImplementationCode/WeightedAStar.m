@@ -36,7 +36,7 @@ while max(size((frontierNodes))) > 1
         end
         costs = findAdjacenciesAndCosts(lowestCostNode.id, adjacencyMatrix, costMatrix1, costMatrix2);
         for edge = 1:length(costs(:,1)) 
-            g     = lowestCostNode.cost + costs(edge,2)*weight + costs(edge,3)*(1-weight);
+            g     = lowestCostNode.cost + costs(edge,2)*weight +( costs(edge,3)/1E7)*(1-weight);
             findInfrontierNodes = getNodeById(costs(edge,1));
             if(min(size(findInfrontierNodes))) ~= 0
                 if g < findInfrontierNodes.g
