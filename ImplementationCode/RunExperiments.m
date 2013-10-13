@@ -20,7 +20,7 @@ for i = 1:10000
             if weight == 1
                 hold off
             end
-            subplot(1,4,weight);
+            subplot(2,4,weight);
             
             hs = plot(xy(1,start),xy(2,start),'r.');
             set(hs, 'Markersize',30);
@@ -31,8 +31,10 @@ for i = 1:10000
             set(hg, 'Markersize',30);
             colormap('gray');
             scatter3(xy(1,explored(:,1)),xy(2,explored(:,1)),explored(:,2)',5,explored(:,2)');
+            subplot(2,4,4 + weight);
+            plot(crimeNode(path));
         end
-        subplot(1,4,4);
+        subplot(2,4,4);
         hs = plot(xy(1,start),xy(2,start),'r.');
         hold on
         scatter3(xy(1,explored(:,1)),xy(2,explored(:,1)),crimeNode(explored(:,1)),5,crimeNode(explored(:,1)));

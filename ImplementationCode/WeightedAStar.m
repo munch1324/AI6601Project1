@@ -50,7 +50,7 @@ while max(size((frontierNodes))) > 1
                 newNode.id   = costs(edge,1);
                 newNode.g    = g;
                 %Heuristic double counts the euclidean distance currently
-                newNode.h    = EuclideanDistance(xy(1,edge),xy(2,edge),xy(1,lowestCostNode.id),xy(2,lowestCostNode.id));
+                newNode.h    = EuclideanDistance(xy(1,edge),xy(2,edge),xy(1,lowestCostNode.id),xy(2,lowestCostNode.id))*weight;
                 newNode.cost = newNode.g + newNode.h;
                 newNode.path = [lowestCostNode.path, newNode.id];
                 frontierNodes = [frontierNodes, newNode];
