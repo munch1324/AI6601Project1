@@ -49,7 +49,7 @@ if exist('osm2matlab.mat','file') ~= 2
     for node = 1 : dim
         ind = sparse2ind(dg,node);
         for j = 1 : length(ind)
-            tmp(t,:) = [node ind(j) 0.5*(crime_node(node)+crime_node(j))];
+            tmp(t,:) = [node ind(j) 0.5*(crime_node(node)+crime_node(ind(j)))];
             t = t + 1;
         end
     end
