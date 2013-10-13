@@ -9,14 +9,14 @@ xy    = ans.parsed_osm.node.xy;
 crimeNode = ans.crime_node;
 weights = [0, 0.5, 1];
 
-rng(3,'twister');
-for i = 1:1000
-    start = randi(39358)
-    goal  = randi(39358)
-    [path explored] = WeightedAStar(  sparceAdjacency, dist, crime, start, goal, 0.5 )
+rng(8,'twister');
+for i = 1:10000
+    start = randi(39358);
+    goal  = randi(39358);
+    [path explored] = WeightedAStar(  sparceAdjacency, dist, crime, start, goal, 0.5, xy );
     if length(path) > 0
         for weight = 1:length(weights)
-            [path explored] = WeightedAStar(  sparceAdjacency, dist, crime, start, goal, weights(weight) )
+            [path explored] = WeightedAStar(  sparceAdjacency, dist, crime, start, goal, weights(weight), xy )
             if weight == 1
                 hold off
             end

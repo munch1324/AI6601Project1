@@ -1,4 +1,4 @@
-function [ outpath, explored ] = WeightedAStar(  adjacencyMatrix, costMatrix1, costMatrix2, start, goal, weight )
+function [ outpath, explored ] = WeightedAStar(  adjacencyMatrix, costMatrix1, costMatrix2, start, goal, weight, xy )
 %WEIGHTEDASTAR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -50,7 +50,7 @@ while max(size((frontierNodes))) > 1
                 newNode.id   = costs(edge,1);
                 newNode.g    = g;
                 %Heuristic double counts the euclidean distance currently
-                newNode.h    = costMatrix1(lowestCostNode.id,edge)*weight + costMatrix1(lowestCostNode.id,edge)*(1-weight);
+                newNode.h    = EuclideanDistance(xy(1,edge),xy(2,edge),xy(1,lowestCostNode.id),xy(2,lowestCostNode.id));
                 newNode.cost = newNode.g + newNode.h;
                 newNode.path = [lowestCostNode.path, newNode.id];
                 frontierNodes = [frontierNodes, newNode];
@@ -93,5 +93,5 @@ function result = findAdjacenciesAndCosts(id, adjacencyMatrix, costMatrix1, cost
 end
 
 function [euclideanDistance] = EuclideanDistance(x1,y1,x2,y2)
-    euclideanDistance =  sqrt(s(x1-x2).^2 + (y1-y2).^2);
+    euclideanDistance =  sqrt((x1-x2).^2 + (y1-y2).^2);
 end
