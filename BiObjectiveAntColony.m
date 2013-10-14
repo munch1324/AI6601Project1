@@ -17,7 +17,7 @@ q0 = 0.9;
 a = 3;
 b = 8;
 H = 10;
-
+gammaTau = 10;
 
 %First  Pheromone Matrix
 Tau1 = sparse(N,N);
@@ -38,10 +38,9 @@ endConditionMet = false;
 while ~endConditionMet
     
     %For each ant
-    ant.nodeId = start;
     
-    for h = [1:H];
-        
+    for h = 1:H
+        ant(h).nodeId = start;
         %until you reach the sink
         while ant.nodeId ~= goal
             J = findAdjacent(ant.nodeId,adjacency);
@@ -54,11 +53,13 @@ while ~endConditionMet
                n12(j) = min(1, (C2max-crime(i,j))/(C2Max-C2Min) + epsilon);    
             end
             
+            nextIndex = -1;
+            
             %Transition Event - Equation 5 p. 1240
             if q <= q0
                 %%For each of the edges find argmax over J
                 max = -1;
-                nextIndex = -1;
+
                 for j = J
                     pij = (Tau1(i,j)*n11(i,j)).^(gamma) * (Tau2(i,j)*n12(i,j)).^(1-gamma) * n2(j);
                     if pij > max
@@ -88,19 +89,25 @@ while ~endConditionMet
                 for j = J
                     pij(j) = pij/summedOver;
                 end
-                %sum over all j
-                choice = rand();
+                %Find the 
+                p = rand();
+                nextIndex = find(pij > 0.5, 1);
             end
             
             %Equation 2 - first movement heuristic
-            i = 1;
-            j = 1;
-            localUpdateEvapRate;
-            
-        
-        
+            ant(h).path(end+1) = nextIndex;
+            ant(h).nodeId = nextIndex;
         end
-        
+        %Local Pheromone update - serially
+        for h = 1:H
+            for i = 2:length(ant(h).path)
+                Tau1 = Tau1*localUpdateEvapRate;
+                Tau2 = Tau2*localUpdateEvapRate;
+
+                Tau1(ant.nodeId,nextIndex) = Tau2(ant.nodeId,nextIndex) + gammaTau / Tau1(ant.nodeId,nextIndex);
+                Tau2(ant.nodeId,nextIndex) = Tau2(ant.nodeId,nextIndex) + gammaTau / Tau2(ant.nodeId,nextIndex);
+            end
+        end
     end
     
     
