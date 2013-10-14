@@ -27,41 +27,69 @@ Tau2 = sparse(N,N);
 %Outlining paper steps (Fig 2 - pg 1241)
 
 %Compute Second Heuristic Parameter
+%Table 1 p. 1240
+
 
 %Create a Colony
 
 
 %Continue until end condition is satisfied
-iii = 1;
-iii = iii + 1; 
 endConditionMet = false;
 while ~endConditionMet
     
     %For each ant
-    ants = [1:H];
-    for h = ants;
+    ant.nodeId = start;
+    
+    for h = [1:H];
         
         %until you reach the sink
-        while 1 == 1
+        while ant.nodeId ~= goal
+            J = findAdjacent(ant.nodeId,adjacency);
+            
+            %First Heuristic - Equation 2 Page 1239
+            n11 = sparse(1,max(J));
+            n12 = sparse(1,max(J));
+            for j = J
+               n11(j) = min(1, (C1max-dist(i,j)) /(C1Max-C1Min) + epsilon);
+               n12(j) = min(1, (C2max-crime(i,j))/(C2Max-C2Min) + epsilon);    
+            end
+            
             %Transition Event - Equation 5 p. 1240
             if q <= q0
-                %%TODO: for each of the edges find argmax over J
-                n11 = min(1, (C1max-dist(i,j)) /(C1Max-C1Min) + epsilon);
-                n12 = min(1, (C2max-crime(i,j))/(C2Max-C2Min) + epsilon);    
+                %%For each of the edges find argmax over J
+                max = -1;
+                nextIndex = -1;
+                for j = J
+                    pij = (Tau1(i,j)*n11(i,j)).^(gamma) * (Tau2(i,j)*n12(i,j)).^(1-gamma) * n2(j);
+                    if pij > max
+                       max = pij;
+                       nextIndex = j;
+                    end
+                end
             else
-                %%TODO: find Pij for each of the edges using this equation:
-                
+                %%Find Pij for each of the edges using this equation:
                 if h <= a
-                    gamma = 0
+                    gamma = 0;
                 elseif a < h < b
                     gamma = h/(b-a) - a/(b-a);
                 else
                     gamma = 1;
                 end
-                %sum over all j
-                summedOver = (Tau1(i,j)*n1(i,j)).^(gamma) * (Tau2(i,j)*n2(i,j)).^(1-gamma) * n2(j);
+                pij = sparse(1,max(J));
+                summedOver = 0;
                 
-                (Tau1(i,j)*n1(i,j)).^(gamma) * (Tau2(i,j)*n2(i,j)).^(1-gamma) * n2(j) / summedOver;
+                %Caclulating the probabilities based on the costs, the
+                %visibility, and the weight (gamma)
+                for j = J
+                    pij(j) = (Tau1(i,j)*n11(i,j)).^(gamma) * (Tau2(i,j)*n12(i,j)).^(1-gamma) * n2(j);
+                    summedOver = summedOver + pij(j);
+                end
+                %Normalizing the exit probabilities
+                for j = J
+                    pij(j) = pij/summedOver;
+                end
+                %sum over all j
+                choice = rand();
             end
             
             %Equation 2 - first movement heuristic
@@ -87,12 +115,16 @@ while ~endConditionMet
         Tau2 = Tau2*globalUpdateEvapRate;
         for r=1:length(Tau1(:,1))
             for c=1:length(Tau1(1,:))
-                Tau1 = min(1,Tau1(r,c)+ delta/dist(r,c));
+                if Tau1(r,c) ~= 0
+                    Tau1 = min(1,Tau1(r,c)+ delta/dist(r,c));
+                end
             end
         end
         for r=1:length(Tau2(:,1))
             for c=1:length(Tau2(1,:))
-                Tau2 = min(1,Tau2(r,c)+ delta/crime(r,c));
+                if Tau1(r,c) ~= 0
+                    Tau2 = min(1,Tau2(r,c)+ delta/crime(r,c));
+                end
             end
         end
     end
@@ -103,4 +135,32 @@ end
 
 
 end
+%%
+function node = createNode(id,g,h,f,path)
+node.id   = id;
+node.g    = g;
+node.h    = h;
+node.f    = f;
+node.path = [path;node.id];
+end
 
+%%
+function ids = findAdjacent(node,dg)
+[~,ids,~] = find(dg(node.id,:));
+end
+
+%%
+function ind = cost_sort(openList)
+n = length(openList);
+costs = zeros(n,1);
+for i = 1 : n
+    costs(i) = openList(i).f;
+end
+[~,ind] = sort(costs);
+ind = ind(1);
+end
+
+%%
+function [euclideanDistance] = EuDist(n1,n2)
+euclideanDistance =  sqrt(sum((n1-n2).^2));
+end
