@@ -32,12 +32,12 @@ t = 1;
 while t < num_exp
     start = randi(num_nodes);
     goal  = randi(num_nodes);
-    [path explored] = WeightedAStar(dg,dist,crime_A,start,goal,0,node_xy);
+    [path,cost,explored] = Astar(dg,dist,crime_A,start,goal,1,node_xy');
     if isempty(path)
         continue
     else
         for weight = 1:length(weights)
-            [path cost explored] = WeightedAStar(dg,dist,crime_A,start,goal,weights(weight),node_xy);
+            [path,cost,explored] = Astar(dg,dist,crime_A,start,goal,weights(weight),node_xy');
             if weight == 1
                 hold off
             end

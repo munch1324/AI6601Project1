@@ -2,7 +2,7 @@ function [outpath, dist, explored] = WeightedAStar(adjacencyMatrix,costMatrix1,c
 % Weighted A* search method
 
 outpath = [];
-dist = [];
+dist = 0;
 if(start == goal)
     outpath = start;
     return;
@@ -11,13 +11,11 @@ startNode.id   = start;
 startNode.g    = 0;
 startNode.h    = 0;
 startNode.cost = 0;
-startNode.dist = 0;
 startNode.path = [startNode.id];
 %Dummy node added to deal with how matlab treats struct arrays - never used
 dummyNode.id = -1;
 dummyNode.g = -1;
 dummyNode.h = -1;
-dummyNode.dist = -1;
 dummyNode.cost = inf;
 dummyNode.path = [dummyNode.id];
 
@@ -34,12 +32,13 @@ while max(size((frontierNodes))) > 1
     explored = [explored; lowestCostNode.id, num_explored];
     if lowestCostNode.id == goal
         outpath = lowestCostNode.path;
-        dist = lowestCostNode.dist;
+        for i = 1 : length(outpath)-1
+            dist = dist + costMatrix1(outpath(i),outpath(i+1));
+        end
         return;
     end
     costs = findAdjacenciesAndCosts(lowestCostNode.id, adjacencyMatrix, costMatrix1, costMatrix2);
     for edge = 1:length(costs(:,1))
-        dist = lowestCostNode.dist + costs(edge,2);
         g = lowestCostNode.cost + costs(edge,2)*weight + costs(edge,3)*(1-weight);
         findInfrontierNodes = getNodeById(costs(edge,1));
         if(min(size(findInfrontierNodes))) ~= 0
@@ -53,7 +52,6 @@ while max(size((frontierNodes))) > 1
         else
             newNode.id   = costs(edge,1);
             newNode.g    = g;
-            newNode.dist = dist;
             %Heuristic double counts the euclidean distance currently
             newNode.h    = EuclideanDistance(xy(1,edge),xy(2,edge),xy(1,lowestCostNode.id),xy(2,lowestCostNode.id))*floor(weight);
             newNode.cost = newNode.g + newNode.h;
@@ -63,7 +61,7 @@ while max(size((frontierNodes))) > 1
     end
 end
 outpath = [];
-dist = [];
+dist = 0;
 
 end
 
