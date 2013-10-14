@@ -24,8 +24,9 @@ start_nodes = zeros(1,num_exp);
 goal_nodes  = zeros(1,num_exp);
 
 node_xy = nodexy.xy;
-weights = [0, 0.5, 1];
+weights = [1, 0.5, 0];
 crime_A = crime.*dist;
+
 
 t = 1;
 while t < num_exp
@@ -36,7 +37,7 @@ while t < num_exp
         continue
     else
         for weight = 1:length(weights)
-            [path explored] = WeightedAStar(dg,dist,crime_A,start,goal,weights(weight),node_xy);
+            [path cost explored] = WeightedAStar(dg,dist,crime_A,start,goal,weights(weight),node_xy);
             if weight == 1
                 hold off
             end
@@ -44,13 +45,14 @@ while t < num_exp
                 subplot(2,4,weight);
                 plot(node_xy(1,start),node_xy(2,start),'r.','Markersize',30);
                 hold on
-                title(sprintf('%f - %d',weights(weight),length(explored(:,1))));
+                title(sprintf('%.2f - %d',weights(weight),length(explored(:,1))));
                 plot(node_xy(1,path),node_xy(2,path),'c');
                 plot(node_xy(1,goal),node_xy(2,goal),'g.','Markersize',30);
                 colormap('gray');
                 scatter3(node_xy(1,explored(:,1)),node_xy(2,explored(:,1)),explored(:,2)',5,explored(:,2)');
                 subplot(2,4,4 + weight);
                 plot(crime_node(path));
+                title(sprintf('distance: %.4f',cost));
             end
         end
         if plot_flag

@@ -62,6 +62,7 @@ if exist('mapdata.mat','file') ~= 2
     end
     
     tmp(:,3) = (tmp(:,3) - min(tmp(:,3)))./(max(tmp(:,3))-min(tmp(:,3)));
+    crime_node = (crime_node - min(crime_node))./(max(crime_node)-min(crime_node));
     crime = sparse(tmp(:,1),tmp(:,2),tmp(:,3),n,m,nnz(dg));
     
     % Delete nodes without any connectivity
