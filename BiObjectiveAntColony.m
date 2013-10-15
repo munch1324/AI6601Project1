@@ -5,10 +5,10 @@ function [ output_args ] = BiObjectiveAntColony(adjacency,dist,crime,start,goal,
 %%Global Variables
 
 %Equation 2
-N = length(adjacencyMatrix);
-C1min = min(min(dist));
+N = length(adjacency);
+C1min = min(min(dist(dist > 0)));
 C1max = max(max(dist));
-C2min = min(min(crime));
+C2min = min(min(crime(crime > 0)));
 C2max = max(max(crime));
 epsilon = 0.0001;
 localUpdateEvapRate = 0.99;
@@ -21,15 +21,16 @@ C = 5;
 gammaTau = 10;
 
 %First  Pheromone Matrix
-Tau1 = sparse(N,N);
+Tau1 = ones(N,N);
 %Second Pheromone Matrix
-Tau2 = sparse(N,N);
+Tau2 = ones(N,N);
 
 %Outlining paper steps (Fig 2 - pg 1241)
 
+%%TODO : compute second heuristic
 %Compute Second Heuristic Parameter
 %Table 1 p. 1240
-
+n2 = ones(1,N);
 
 %Create a Colony
 
@@ -37,9 +38,11 @@ Tau2 = sparse(N,N);
 %Run multiple colonies
 for c = 1:C
     
+    ant = [];
     %For each ant
     for h = 1:H
         ant(h).nodeId = start;
+        ant(h).path   = start;
         %until you reach the sink
         while ant.nodeId ~= goal
             J = findAdjacent(ant.nodeId,adjacency);
@@ -48,8 +51,8 @@ for c = 1:C
             n11 = sparse(1,max(J));
             n12 = sparse(1,max(J));
             for j = J
-               n11(j) = min(1, (C1max-dist(ant(h).nodeId,j)) /(C1Max-C1Min) + epsilon);
-               n12(j) = min(1, (C2max-crime(ant(h).nodeId,j))/(C2Max-C2Min) + epsilon);    
+               n11(j) = min(1, (C1max-dist(ant(h).nodeId,j)) /(C1max-C1min) + epsilon);
+               n12(j) = min(1, (C2max-crime(ant(h).nodeId,j))/(C2max-C2min) + epsilon);    
             end
             
             if h <= a
@@ -62,13 +65,13 @@ for c = 1:C
             nextIndex = -1;
             
             %Transition Event - Equation 5 p. 1240
-            
+            %%TODO what is q?
+            q = rand();
             if q <= q0
                 %%For each of the edges find argmax over J
                 maxProb = -1;
-
                 for j = J
-                    pij = (Tau1(ant(h).nodeId,j)*n11(ant(h).nodeId,j)).^(gamma) * (Tau2(ant(h).nodeId,j)*n12(ant(h).nodeId,j)).^(1-gamma) * n2(j);
+                    pij = (Tau1(ant(h).nodeId,j)*n11(j)).^(gamma) * (Tau2(ant(h).nodeId,j)*n12(j)).^(1-gamma) * n2(j);
                     if pij > maxProb
                        maxProb = pij;
                        nextIndex = j;
@@ -83,7 +86,7 @@ for c = 1:C
                 %Caclulating the probabilities based on the costs, the
                 %visibility, and the weight (gamma)
                 for j = J
-                    pij(j) = (Tau1(i,j)*n11(i,j)).^(gamma) * (Tau2(i,j)*n12(i,j)).^(1-gamma) * n2(j);
+                    pij(j) = (Tau1(ant(h).nodeId,j)*n11(j)).^(gamma) * (Tau2(ant(h).nodeId,j)*n12(j)).^(1-gamma) * n2(j);
                     summedOver = summedOver + pij(j);
                 end
                 %Normalizing the exit probabilities
@@ -97,7 +100,7 @@ for c = 1:C
             
             %Equation 2 - first movement heuristic
             ant(h).path(end+1) = nextIndex;
-            ant(h).nodeId = nextIndex;
+            ant(h).nodeId = nextIndex
         end
         %Local Pheromone update - serially
         Tau1 = Tau1*localUpdateEvapRate;
@@ -150,8 +153,8 @@ node.path = [path;node.id];
 end
 
 %%
-function ids = findAdjacent(node,dg)
-[~,ids,~] = find(dg(node.id,:));
+function ids = findAdjacent(id,dg)
+[~,ids,~] = find(dg(id,:));
 end
 
 %%
