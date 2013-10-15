@@ -17,6 +17,7 @@ q0 = 0.9;
 a = 3;
 b = 8;
 H = 10;
+C = 5;
 gammaTau = 10;
 
 %First  Pheromone Matrix
@@ -33,12 +34,10 @@ Tau2 = sparse(N,N);
 %Create a Colony
 
 
-%Continue until end condition is satisfied
-endConditionMet = false;
-while ~endConditionMet
+%Run multiple colonies
+for c = 1:C
     
     %For each ant
-    
     for h = 1:H
         ant(h).nodeId = start;
         %until you reach the sink
@@ -49,33 +48,35 @@ while ~endConditionMet
             n11 = sparse(1,max(J));
             n12 = sparse(1,max(J));
             for j = J
-               n11(j) = min(1, (C1max-dist(i,j)) /(C1Max-C1Min) + epsilon);
-               n12(j) = min(1, (C2max-crime(i,j))/(C2Max-C2Min) + epsilon);    
+               n11(j) = min(1, (C1max-dist(ant(h).nodeId,j)) /(C1Max-C1Min) + epsilon);
+               n12(j) = min(1, (C2max-crime(ant(h).nodeId,j))/(C2Max-C2Min) + epsilon);    
             end
             
+            if h <= a
+                gamma = 0;
+            elseif a < h < b
+                gamma = h/(b-a) - a/(b-a);
+            else
+                gamma = 1;
+            end
             nextIndex = -1;
             
             %Transition Event - Equation 5 p. 1240
+            
             if q <= q0
                 %%For each of the edges find argmax over J
-                max = -1;
+                maxProb = -1;
 
                 for j = J
-                    pij = (Tau1(i,j)*n11(i,j)).^(gamma) * (Tau2(i,j)*n12(i,j)).^(1-gamma) * n2(j);
-                    if pij > max
-                       max = pij;
+                    pij = (Tau1(ant(h).nodeId,j)*n11(ant(h).nodeId,j)).^(gamma) * (Tau2(ant(h).nodeId,j)*n12(ant(h).nodeId,j)).^(1-gamma) * n2(j);
+                    if pij > maxProb
+                       maxProb = pij;
                        nextIndex = j;
                     end
                 end
             else
                 %%Find Pij for each of the edges using this equation:
-                if h <= a
-                    gamma = 0;
-                elseif a < h < b
-                    gamma = h/(b-a) - a/(b-a);
-                else
-                    gamma = 1;
-                end
+
                 pij = sparse(1,max(J));
                 summedOver = 0;
                 
@@ -99,46 +100,43 @@ while ~endConditionMet
             ant(h).nodeId = nextIndex;
         end
         %Local Pheromone update - serially
+        Tau1 = Tau1*localUpdateEvapRate;
+        Tau2 = Tau2*localUpdateEvapRate;
         for h = 1:H
             for i = 2:length(ant(h).path)
-                Tau1 = Tau1*localUpdateEvapRate;
-                Tau2 = Tau2*localUpdateEvapRate;
-
-                Tau1(ant.nodeId,nextIndex) = Tau2(ant.nodeId,nextIndex) + gammaTau / Tau1(ant.nodeId,nextIndex);
-                Tau2(ant.nodeId,nextIndex) = Tau2(ant.nodeId,nextIndex) + gammaTau / Tau2(ant.nodeId,nextIndex);
+                %Adding Pheromone -- less is added to 'longer' edges
+                Tau1(ant.nodeId,nextIndex) = Tau1(ant(h).path(i-1),ant(h).path(i)) + gammaTau / dist(ant(h).path(i-1),ant(h).path(i));
+                Tau2(ant.nodeId,nextIndex) = Tau2(ant(h).path(i-1),ant(h).path(i)) + gammaTau / crime(ant(h).path(i-1),ant(h).path(i));
             end
         end
     end
     
-    
-    %if ants didn't generate a solution, repeat
-    if ~solution
-        
-    
-    else%perform a global update
-        %Equation 4 p.1240
-        %%TODO : only on non-dominated paths
-        Tau1 = Tau1*globalUpdateEvapRate;
-        Tau2 = Tau2*globalUpdateEvapRate;
-        for r=1:length(Tau1(:,1))
-            for c=1:length(Tau1(1,:))
-                if Tau1(r,c) ~= 0
-                    Tau1 = min(1,Tau1(r,c)+ delta/dist(r,c));
-                end
+    %%TODO calculate the non-dominated solutions
+    %perform a global update
+    %Equation 4 p.1240
+    %%TODO : only on non-dominated paths
+    Tau1 = Tau1*globalUpdateEvapRate;
+    Tau2 = Tau2*globalUpdateEvapRate;
+    for r=1:length(Tau1(:,1))
+        for c=1:length(Tau1(1,:))
+            if Tau1(r,c) ~= 0
+                Tau1 = min(1,Tau1(r,c)+ delta/dist(r,c));
             end
         end
-        for r=1:length(Tau2(:,1))
-            for c=1:length(Tau2(1,:))
-                if Tau1(r,c) ~= 0
-                    Tau2 = min(1,Tau2(r,c)+ delta/crime(r,c));
-                end
+    end
+    for r=1:length(Tau2(:,1))
+        for c=1:length(Tau2(1,:))
+            if Tau1(r,c) ~= 0
+                Tau2 = min(1,Tau2(r,c)+ delta/crime(r,c));
             end
         end
     end
     
+    %%TODO remove dominated paths
     
 end
-
+    
+%% Return paths
 
 
 end
