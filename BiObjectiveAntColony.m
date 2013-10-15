@@ -108,10 +108,11 @@ for c = 1:C
             ant(h).nodeId = nextIndex
         end
         %Local Pheromone update - serially
-        Tau1 = Tau1*localUpdateEvapRate;
-        Tau2 = Tau2*localUpdateEvapRate;
+
         for h = 1:H
             for i = 2:length(ant(h).path)
+                Tau1 = Tau1*localUpdateEvapRate;
+                Tau2 = Tau2*localUpdateEvapRate;
                 %Adding Pheromone -- less is added to 'longer' edges
                 Tau1(ant.nodeId,nextIndex) = Tau1(ant(h).path(i-1),ant(h).path(i)) + gammaTau / dist(ant(h).path(i-1),ant(h).path(i));
                 Tau2(ant.nodeId,nextIndex) = Tau2(ant(h).path(i-1),ant(h).path(i)) + gammaTau / crime(ant(h).path(i-1),ant(h).path(i));
