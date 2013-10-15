@@ -5,6 +5,7 @@ function [ output_args ] = BiObjectiveAntColony(adjacency,dist,crime,start,goal,
 %%Global Variables
 
 %Equation 2
+xy = xy';
 N = length(adjacency);
 C1min = min(min(dist(dist > 0)));
 C1max = max(max(dist));
@@ -16,7 +17,7 @@ globalUpdateEvapRate= 0.99;
 q0 = 0.1;
 a = 3;
 b = 8;
-H = 10;
+H = 20;
 C = 5;
 gammaTau = 10;
 
@@ -44,8 +45,15 @@ for c = 1:C
         ant(h).nodeId = start;
         ant(h).path   = start;
         %until you reach the sink
-        while ant.nodeId ~= goal
-            J = findAdjacent(ant.nodeId,adjacency);
+        count = 0;
+        while ant(h).nodeId ~= goal
+            if count > 30000
+               count = 0;
+               ant(h).nodeId = start;
+               ant(h).path = start;
+            end
+            count = count + 1;
+            J = findAdjacent(ant(h).nodeId,adjacency);
             
             %First Heuristic - Equation 2 Page 1239
             n11 = sparse(1,max(J));
@@ -105,18 +113,27 @@ for c = 1:C
             
             %Equation 2 - first movement heuristic
             ant(h).path(end+1) = nextIndex;
-            ant(h).nodeId = nextIndex
+            ant(h).nodeId = nextIndex;
+            ant(h)
         end
         %Local Pheromone update - serially
-
-        for h = 1:H
-            for i = 2:length(ant(h).path)
-                Tau1 = Tau1*localUpdateEvapRate;
-                Tau2 = Tau2*localUpdateEvapRate;
-                %Adding Pheromone -- less is added to 'longer' edges
-                Tau1(ant.nodeId,nextIndex) = Tau1(ant(h).path(i-1),ant(h).path(i)) + gammaTau / dist(ant(h).path(i-1),ant(h).path(i));
-                Tau2(ant.nodeId,nextIndex) = Tau2(ant(h).path(i-1),ant(h).path(i)) + gammaTau / crime(ant(h).path(i-1),ant(h).path(i));
-            end
+        subplot(2,10,h);
+        plot(xy(ant(h).path(:),1),xy(ant(h).path(:),2));
+        Tau1 = Tau1*localUpdateEvapRate;
+        Tau2 = Tau2*localUpdateEvapRate;
+        %Calculate path distance
+        pathCost1 = epsilon;
+        pathCost2 = epsilon;
+        for i = 2:length(ant(h).path)
+            pathCost1 = pathCost1 + dist(ant(h).path(i-1),ant(h).path(i));
+            pathCost2 = pathCost2 + crime(ant(h).path(i-1),ant(h).path(i));
+        end
+        ant(h).pathCost1 = pathCost1;
+        ant(h).pathCost2 = pathCost2;
+        for i = 2:length(ant(h).path)
+            %Adding Pheromone -- less is added to 'longer' edges
+            Tau1(ant(h).path(i-1),ant(h).path(i)) = Tau1(ant(h).path(i-1),ant(h).path(i)) + gammaTau / pathCost1;
+            Tau2(ant(h).path(i-1),ant(h).path(i)) = Tau2(ant(h).path(i-1),ant(h).path(i)) + gammaTau / pathCost2;
         end
     end
     
