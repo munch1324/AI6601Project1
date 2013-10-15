@@ -90,12 +90,17 @@ for c = 1:C
                     summedOver = summedOver + pij(j);
                 end
                 %Normalizing the exit probabilities
-                for j = J
-                    pij(j) = pij/summedOver;
-                end
-                %Find the 
+                pij = pij/summedOver;
+                
+                %Find the selected index
                 p = rand();
-                nextIndex = find(pij > 0.5, 1);
+                for j = J
+                    p = p - pij(j);
+                    if p < 0
+                       nextIndex = j;
+                       break;
+                    end
+                end
             end
             
             %Equation 2 - first movement heuristic
